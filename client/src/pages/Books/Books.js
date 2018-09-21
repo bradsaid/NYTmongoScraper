@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import Jumbotron from "../../components/Jumbotron";
-import DeleteBtn from "../../components/DeleteBtn";
 import SaveBtn from "../../components/SaveBtn";
 import API from "../../utils/API";
+import DeleteBtn from "../../components/DeleteBtn";
 import { Col, Row, Container } from "../../components/Grid";
 import { List, ListItem } from "../../components/List";
 import { Input, FormBtn } from "../../components/Form";
@@ -11,38 +11,36 @@ class Books extends Component {
   state = {
     books: [],
     title: "",
-    author: "",
-    synopsis: "",
     search: "",
     results: [],
+    start: "",
+    end: "",
     url: "",
     date: "",
     key: "",
-    article: []
+    savedArticles: []
   };
 
-  componentDidMount() {
+  componentWillMount() {
     this.loadArticles()
-  }
+  };
 
-  // Search Articles
   searchArticle = query => {
     API.searchArticles(query)
-    .then(res =>
-      this.setState({ results: res.data.response.docs }, function ()
-    { console.log(this.state.results) })
-    )
-    .then(this.loadArticles())
-    .catch(err => console.log(err))
+      .then(res =>
+        this.setState({ results: res.data.response.docs }, function () { console.log(this.state.results) })
+      )
+      .then(this.loadArticles())
+      .catch(err => console.log(err))
   }
 
   loadArticles = () => {
     API.getArticles()
-    .then(res =>
-      //this.setState({ results: res.data, title: "", url: "", date: ""})
-      this.setState({ results: res.data })
-    )
-    .catch(err => console.log(err))
+      .then(res =>
+        this.setState({ savedArticles: res.data })
+      )
+      .then(console.log(this.state.savedArticles))
+      .catch(err => console.log(err))
   };
 
   deleteBook = id => {
@@ -51,34 +49,19 @@ class Books extends Component {
       .catch(err => console.log(err));
   };
 
-  //handleSave = (event) => {
-    //console.log(event.target)
-    //const { name, value } = event.target;
-    //this.setState({
-    //  [name]: value
-    //})
-    /*API.saveArticle({
-      title: this.state.title,
-      url: this.state.url,
-      date: this.state.date
-    })*/
-    handleSave = (id) => {
-    API.saveArticle( id )
-      .then(id => console.log(id))
-      //.then(res => { this.setState({ articles: res.data})})
-      //.then(res => this.loadArticles())
+  handleSave = (articleData) => {
+    API.saveArticle(articleData)
+      .then(res => this.loadArticles())
       .catch(err => console.log(err))
-    };
-  
+  };
+
 
 
   handleInputChange = (event) => {
-    console.log(event.target)
     const { name, value } = event.target;
     this.setState({
       [name]: value
     })
-    console.log("this.state.name = " + this.state.name)
   };
 
   handleDelete = id => {
@@ -87,11 +70,22 @@ class Books extends Component {
       .catch(err => console.log(err));
   };
 
-  handleFormSubmit = event => {
+  handleFormSubmit = (event) => {
     event.preventDefault();
-    this.searchArticle(this.state.search)
-    }
-    
+    const { name, value } = event.target;
+    this.setState({
+      [name]: value
+    })
+    let searchTerms = []
+    searchTerms.push(this.state.search, this.state.start, this.state.end)
+    this.searchArticle(searchTerms)
+  }
+
+
+
+
+
+
   render() {
     return (
       <Container fluid>
@@ -100,70 +94,70 @@ class Books extends Component {
           <Col size="md-6">
             <Jumbotron><h1>Search</h1></Jumbotron>
             <form>
-              <Input value={this.state.title} onChange={this.handleInputChange} name="title" placeholder="Topic" />
-              <Input value={this.state.author} onChange={this.handleInputChange} name="author" placeholder="Start Year" />
-              <Input value={this.state.synopsis} onChange={this.handleInputChange} name="synopsis" placeholder="End Year" />
+              <Input value={this.state.search} onChange={this.handleInputChange} name="search" placeholder="Topic" />
+              <Input value={this.state.author} onChange={this.handleInputChange} type="text" className="form-control" maxLength="4" name="start" placeholder="Start Year (Optional)" />
+              <Input value={this.state.synopsis} onChange={this.handleInputChange} type="text" className="form-control" maxLength="4" name="end" placeholder="End Year (Optional)" />
               <FormBtn onClick={this.handleFormSubmit}>Search</FormBtn>
             </form>
           </Col>
           <Col size="md-3"></Col>
-          </Row>
-          <Row>
-          <Col size="md-3"></Col>  
+        </Row>
+        <Row>
+          <Col size="md-3"></Col>
           <Col size="md-6 sm-12">
             <Jumbotron><h1>Results</h1></Jumbotron>
-            {console.log(this.state.results)}
+
             {this.state.results.length ? (
               <List>
                 {this.state.results.map(article => {
                   return (
-                    <ListItem  key={article._id} > 
-                    <a href={article.web_url}><strong> 
-                    {article.headline.main}                  
-                    </strong></a>
-                    <DeleteBtn onClick={() => this.handleDelete(article._id)} />
-                    <SaveBtn onClick={() => this.handleSave(article._id)}  /> 
-                  </ListItem>
+                    <ListItem key={article._id} >
+                      <a href={article.web_url}><strong>
+                        {article.headline.main}
+                      </strong></a>
+                      <SaveBtn onClick={() => this.handleSave(article)} />
+                    </ListItem>
                   );
                 })
                 }
               </List>
             ) : (
-              <h3>No Results to Display</h3>
-            )}
+                <h3>No Results to Display</h3>
+              )}
           </Col>
           <Col size="md-3"></Col>
         </Row>
         <Row>
-        <Col size="md-3"></Col>
-        <Col size="md-6">
-        <Jumbotron>
+          <Col size="md-3"></Col>
+          <Col size="md-6">
+            <Jumbotron>
               <h1>Saved Articles</h1>
             </Jumbotron>
             {this.state.results.length ? (
               <List>
-                {this.state.results.map(article => {
+                {this.state.savedArticles.map(article => {
                   return (
                     <ListItem key={article._id} value={this.state.title} name="title">
-                    <a href={article.web_url} >
-                      <strong>
-                       {//} {article.headline.main} 
-                       } 
-                       Article
+                      <a href={article.web_url} >
+                        <strong>
+                          {article.headline.main}
+
+                          Article
                       </strong>
-                    </a>
-                    <DeleteBtn onClick={() => this.handleDelete(article._id)} />
-                  </ListItem>
+                      </a>
+                      <DeleteBtn onClick={() => this.handleDelete(article._id)} />
+                    </ListItem>
                   );
                 })
                 }
               </List>
             ) : (
-              <h3>No Results to Display</h3>
-            )}
-            </Col>
-        <Col size="md-3"></Col>
+                <h3>No Results to Display</h3>
+              )}
+          </Col>
+          <Col size="md-3"></Col>
         </Row>
+
       </Container>
     );
   }

@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const articleSchema = new Schema({
-  title: { type: String },
-  url: { type: String },
+  headline: { type: Object },
+  web_url: { type: String },
   date: { type: Date, default: Date.now },
   id: {type: String}
 });
