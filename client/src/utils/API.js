@@ -21,10 +21,9 @@ export default {
   deleteArticle: function(id) {
     return axios.delete("/api/articles/" + id)
   },
-  saveArticle: function(articleData) {
-    console.log(articleData)
-    return axios.post("/api/articles", articleData)
-    
+  saveArticle: function(id) {
+    //console.log(article)
+    return axios.post("/api/articles/" + id)
   },
 
 

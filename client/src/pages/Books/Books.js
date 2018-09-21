@@ -17,7 +17,8 @@ class Books extends Component {
     results: [],
     url: "",
     date: "",
-    key: ""
+    key: "",
+    article: []
   };
 
   componentDidMount() {
@@ -44,27 +45,32 @@ class Books extends Component {
     .catch(err => console.log(err))
   };
 
-  // Deletes a book from the database with a given id, then reloads books from the db
   deleteBook = id => {
     API.deleteBook(id)
       .then(res => this.loadBooks())
       .catch(err => console.log(err));
   };
 
-  handleSave = (event) => {
-    console.log(event.target)
-    const { name, value } = event.target;
-    this.setState({
-      [name]: value
-    })
-    API.saveArticle({
+  //handleSave = (event) => {
+    //console.log(event.target)
+    //const { name, value } = event.target;
+    //this.setState({
+    //  [name]: value
+    //})
+    /*API.saveArticle({
       title: this.state.title,
       url: this.state.url,
       date: this.state.date
-    })
-      .then(res => this.loadArticles())
+    })*/
+    handleSave = (id) => {
+    API.saveArticle( id )
+      .then(id => console.log(id))
+      //.then(res => { this.setState({ articles: res.data})})
+      //.then(res => this.loadArticles())
       .catch(err => console.log(err))
-  };
+    };
+  
+
 
   handleInputChange = (event) => {
     console.log(event.target)
@@ -84,7 +90,6 @@ class Books extends Component {
   handleFormSubmit = event => {
     event.preventDefault();
     this.searchArticle(this.state.search)
-    console.log(this.state.search)
     }
     
   render() {
@@ -107,14 +112,17 @@ class Books extends Component {
           <Col size="md-3"></Col>  
           <Col size="md-6 sm-12">
             <Jumbotron><h1>Results</h1></Jumbotron>
+            {console.log(this.state.results)}
             {this.state.results.length ? (
               <List>
                 {this.state.results.map(article => {
                   return (
                     <ListItem  key={article._id} > 
-                    <a href={article.web_url}><strong> Article Headline</strong></a>
+                    <a href={article.web_url}><strong> 
+                    {article.headline.main}                  
+                    </strong></a>
                     <DeleteBtn onClick={() => this.handleDelete(article._id)} />
-                    <SaveBtn value={this.state.title} name="title" onClick={this.handleSave}  />
+                    <SaveBtn onClick={() => this.handleSave(article._id)}  /> 
                   </ListItem>
                   );
                 })
